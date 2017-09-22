@@ -34,4 +34,5 @@ msbuild.wrn
 
 # front-end
 node_modules/
-wwwroot/
+wwwroot/lib/
+wwwroot/js/

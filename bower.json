@@ -6,9 +6,6 @@
     "jquery": "2.2.0",
     "jquery-validation": "1.14.0",
     "jquery-validation-unobtrusive": "3.2.6",
-    "jqGrid": "jqgrid#5.2.1"
-  },
-  "resolutions": {
     "jqGrid": "5.2.1"
   }
 }

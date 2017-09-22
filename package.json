@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-   ,"build": "webpack --display-modules  --display-error-details --config webpack.config.js"
+   ,"build": "bower install && webpack --display-modules  --display-error-details --config webpack.config.js"
   },
   "author": "Timur Appaev <alloaolla@gmail.com>",
   "license": "MIT",

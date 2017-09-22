@@ -17,7 +17,7 @@ const getParameterByName = function (name: string, url?: string) {
         return '';
     }
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
+};
 
 const pad = function (i: number): string {
     return i < 10 ? '0' + String(i): String(i);
