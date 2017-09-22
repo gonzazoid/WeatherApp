@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "About WeatherApp";
+}
+<h2>@ViewData["Title"].</h2>
+<hr>
+<h2><a id="Reports_Team_Coding_Challenge_0"></a>Reports Team Coding Challenge</h2>
+<p>Below is a coding challenge for you to complete. You should be able to complete this challenge in couple of evenings of effort.</p>
+<h3><a id="Coding_Spec_4"></a>Coding Spec:</h3>
+<p>Write an <a href="http://asp.net">asp.net</a> mvc application which collects current weather data for interested locations and provides ability to view weather history for them.</p>
+<h3><a id="Limitations_7"></a>Limitations:</h3>
+<ul>
+<li>MS VisualStudio 2010</li>
+<li>.Net 4.0</li>
+<li><a href="http://ASP.NET">ASP.NET</a> MVC4</li>
+<li>MSSQL Express for data storage</li>
+<li>jqGrid</li>
+<li>DI/IoC via Microsoft.Practices.Unity</li>
+<li>Data access via Entity CodeFirst</li>
+<li>Dependencies loaded via NuGet</li>
+</ul>
+<h3><a id="Result_17"></a>Result:</h3>
+<p><a href="http://ASP.NET">ASP.NET</a> MVC application that can be compiled and run with 2 pages:</p>
+<ul>
+<li>editable list of interested cities (locations) with current weather</li>
+<li>weather history for the selected city with 3 hour step</li>
+</ul>
+<h3><a id="Details_23"></a>Details:</h3>
+<ul>
+<li>Weather data provider 1 <a href="http://openweathermap.org/api">http://openweathermap.org/api</a></li>
+<li>Weather data provider 2 <a href="https://developer.yahoo.com/weather/">https://developer.yahoo.com/weather/</a></li>
+</ul>
+<h3><a id="Samples_with_my_auth_keys_27"></a>Samples with my auth keys:</h3>
+<pre><code>curl "http://api.openweathermap.org/data/2.5/weather?_=2&amp;q=Rostov-on-Don,ru&amp;appid=080fa56b819976cbf04f1a71ff56c2e8" 2&gt;/dev/null | jq .
+
+curl "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22rostov-na-donu%2C%20ru%22)%20%20and%20u%3D'c'&amp;format=json&amp;env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys" | jq .
+</code></pre>
