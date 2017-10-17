@@ -34,5 +34,5 @@ msbuild.wrn
 
 # front-end
 node_modules/
-wwwroot/lib/
-wwwroot/js/
+WeatherApp/wwwroot/lib/
+WeatherApp/wwwroot/js/

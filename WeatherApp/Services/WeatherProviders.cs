@@ -54,9 +54,9 @@ namespace WeatherApp.Services
             string content = await getWeatherAsync(url);
             OpenWeatherResponseValidator validator = new OpenWeatherResponseValidator();
             OpenWeatherResponse raw = parseJson<OpenWeatherResponse>(content);
-            if(!validator.Validate(raw).IsValid)
+            if(raw == null || !validator.Validate(raw).IsValid)
             {
-                // TODO do something and exit
+                throw new WeatherAppNotValidProviderResponseException("not valid response from openWeather provider");
             }
 
             State state = new State();
