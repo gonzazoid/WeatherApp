@@ -8,19 +8,14 @@ using FluentValidation;
 
 namespace WeatherApp.Services
 {
-    public interface IWeatherProviders
-    {
-        Task<State> checkPlaceOpenWeatherAsync(Place place);
-        Task<State> checkPlaceYahooAsync(Place place);
-    }
-
-    public class WeatherProviders : IWeatherProviders
+    public class OpenWeatherProvider : IWeatherProvider
     {
 
         private IWeatherAppOptions options;
         private IUserAgent crawler;
+        public string name { get; } = "openWeather";
 
-        public WeatherProviders(IWeatherAppOptions _options, IUserAgent _crawler)
+        public OpenWeatherProvider(IWeatherAppOptions _options, IUserAgent _crawler)
         {
             options = _options;
             crawler = _crawler;
@@ -31,7 +26,7 @@ namespace WeatherApp.Services
             return await crawler.GetResponseAsync(url);
         }
 
-        public T parseJson<T> (string json) where T : class
+        private T parseJson<T> (string json) where T : class
         {
             try
             {
@@ -44,7 +39,7 @@ namespace WeatherApp.Services
             }
         }
 
-        async public Task<State> checkPlaceOpenWeatherAsync(Place place)
+        async public Task<State> checkPlaceAsync(Place place)
         {
 
             string url = String.Format(options.WeatherApp.openWeatherRequestUrl
@@ -62,32 +57,9 @@ namespace WeatherApp.Services
             State state = new State();
             state.temp = raw.main.temp;
             state.pressure = raw.main.pressure;
-            state.provider = "openWeather";
+            state.provider = name;
 
             return state;
-        }
-
-        async public Task<State> checkPlaceYahooAsync(Place place)
-        {
-
-            State state = new State();
-            string url = String.Format(options.WeatherApp.yahooRequestUrl, place.YahooProvidersAlias);
-            string content = await getWeatherAsync(url);
-            // Console.WriteLine(content);
-            YahooWeatherResponseValidator validator = new YahooWeatherResponseValidator();
-            YahooWeatherResponse raw = parseJson<YahooWeatherResponse>(content);
-            if(!validator.Validate(raw).IsValid)
-            {
-                // TODO do something and exit
-            }
-
-            state.temp = 273.15f + raw.query.results.channel.item.condition.temp; // переводим в кельвины
-            // TODO what EXACTLY is pressure unit in yahoo`s response?  34236 CAN NOT be atmosphere pressure in mb!!!
-            state.pressure = raw.query.results.channel.atmosphere.pressure; // 1 hectopascal = 1 millibar
-            state.provider = "yahoo";
-
-            return state;
-
         }
     }
 }

@@ -47,20 +47,14 @@ namespace WeatherApp.Services
 
         async private Task updatingAsync(Place place)
         {
-            State openWeather = await dataProviders.checkPlaceOpenWeatherAsync(place);
-            State yahoo = await dataProviders.checkPlaceYahooAsync(place);
-
             // January 19, 2038 feel free to let me know if something wrong with this code )
             int stamp = (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            // пройтись по всем стейтам и поставить стамп и Id
+            State[] states = ((await dataProviders
+                .checkPlaceAsync(place))
+                .Select(state => { state.stamp = stamp; state.PlaceId = place.PlaceId; return state;})).ToArray();
 
-            yahoo.stamp = stamp;
-            yahoo.PlaceId = place.PlaceId;
-
-            openWeather.stamp = stamp;
-            openWeather.PlaceId = place.PlaceId;
-
-            dbContext.weather_states.Add(openWeather);
-            dbContext.weather_states.Add(yahoo);
+            dbContext.weather_states.AddRange(states);
         }
     }
 }

@@ -10,12 +10,12 @@ using WeatherApp.Services;
 
 namespace NUnit.Framework.Tests
 {
-    public class WeatherProvidersTests
+    public class OpenWeatherProviderTests
     {
         // тест - передаем конфиг и проверяем что собралась правильная строка для UA
         // так как проверяем через мок(а не стаб) - покрываем и взаимодействие с UA - то есть сам факт вызова метода GetResponseAsync
         [Test]
-        async public Task checkPlaceOpenWeatherAsync_Interaction_BuildingRequestURL_ReturnBuildedURLString()
+        async public Task checkPlaceAsync_Interaction_BuildingRequestURL_ReturnBuildedURLString()
         {
             string requestedUrl = null;
             Mock<IWeatherAppOptions> stubOptions = new Mock<IWeatherAppOptions>() { DefaultValue = DefaultValue.Mock };
@@ -29,10 +29,10 @@ namespace NUnit.Framework.Tests
 
             Place stubPlace = new Place() { OpenWeatherProvidersAlias = "city" };
 
-            WeatherProviders testWeatherProviders = new WeatherProviders(stubOptions.Object, mockUserAgent.Object);
+            IWeatherProvider testWeatherProvider = new OpenWeatherProvider(stubOptions.Object, mockUserAgent.Object);
             // дальше код поломается но это не важно, исключения не проверяем, просто глушим
             try{
-                await testWeatherProviders.checkPlaceOpenWeatherAsync(stubPlace);
+                await testWeatherProvider.checkPlaceAsync(stubPlace);
             }catch(Exception e){
 
             }
@@ -42,7 +42,7 @@ namespace NUnit.Framework.Tests
 
         // тест - проверяем что ИСПОЛЬЗУЕТСЯ валидатор (это не тест валидатора, это тест на то что он есть и бросает исключение)
         [Test]
-        async public Task checkPlaceOpenWeatherAsync_Unit_HandleNotValidResponse_CatchException()
+        async public Task checkPlaceAsync_Unit_HandleNotValidResponse_CatchException()
         {
             Mock<IWeatherAppOptions> stubOptions = new Mock<IWeatherAppOptions>() { DefaultValue = DefaultValue.Mock };
             stubOptions.Object.WeatherApp.openWeatherRequestUrl = "";
@@ -54,13 +54,14 @@ namespace NUnit.Framework.Tests
 
             Place stubPlace = new Place() { OpenWeatherProvidersAlias = "" };
 
-            WeatherProviders testWeatherProviders = new WeatherProviders(stubOptions.Object, stubUserAgent.Object);
-			Assert.ThrowsAsync<WeatherAppNotValidProviderResponseException>(() => testWeatherProviders.checkPlaceOpenWeatherAsync(stubPlace));
+            IWeatherProvider testWeatherProvider = new OpenWeatherProvider(stubOptions.Object, stubUserAgent.Object);
+			var ex = Assert.ThrowsAsync<WeatherAppNotValidProviderResponseException>(async () => await testWeatherProvider.checkPlaceAsync(stubPlace));
+            Assert.AreEqual(ex.GetType(), typeof(WeatherAppNotValidProviderResponseException));
 
         }
 
         [Test]
-        async public Task checkPlaceOpenWeatherAsync_Interaction_HandleValidResponse_ReturnStateToSaveItInStore()
+        async public Task checkPlaceAsync_Interaction_HandleValidResponse_ReturnStateToSaveItInStore()
         {
             Mock<IWeatherAppOptions> stubOptions = new Mock<IWeatherAppOptions>() { DefaultValue = DefaultValue.Mock };
             stubOptions.Object.WeatherApp.openWeatherRequestUrl = "";
@@ -72,10 +73,10 @@ namespace NUnit.Framework.Tests
 
             Place stubPlace = new Place() { OpenWeatherProvidersAlias = "" };
 
-            WeatherProviders testWeatherProviders = new WeatherProviders(stubOptions.Object, stubUserAgent.Object);
-            State test_result = await testWeatherProviders.checkPlaceOpenWeatherAsync(stubPlace);
+            IWeatherProvider testWeatherProvider = new OpenWeatherProvider(stubOptions.Object, stubUserAgent.Object);
+            State test_result = await testWeatherProvider.checkPlaceAsync(stubPlace);
 
-            Assert.True(test_result.temp == 0 && test_result.pressure == 0 && test_result.provider == "openWeather");
+            Assert.True(test_result.temp == 0 && test_result.pressure == 0 && test_result.provider == testWeatherProvider.name);
         }
     }
 }

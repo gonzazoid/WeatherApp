@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Microsoft.Extensions.DependencyModel;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,6 +31,7 @@ namespace WeatherApp
 
     public class Startup : WeatherAppStartup
     {
+
         public IConfigurationRoot Configuration { get; }
 
         public Startup(IHostingEnvironment env)
@@ -46,7 +51,6 @@ namespace WeatherApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddHangfire(options => 
                     options.UseSqlServerStorage(config.WeatherApp.hangFireConnectionString));
 
@@ -65,10 +69,34 @@ namespace WeatherApp
 
             services.AddSingleton<IWeatherAppOptions>(config);
             services.AddSingleton<IConfigurationRoot>(Configuration);
+
+            var serviceProvider = services.BuildServiceProvider();
+            var weatherProviders = ActivatorUtilities.CreateInstance<WeatherProviders>(serviceProvider);
+            // get all providers (all classes implemented IWeatherProvider)
+            IEnumerable<TypeInfo> types = 
+                typeof(WeatherProviders).GetTypeInfo()
+                                        .Assembly.DefinedTypes
+                                        .Where(typeInfo => typeInfo.ImplementedInterfaces.Contains<Type>(typeof(IWeatherProvider)));
+
+            // building Providers collection
+            foreach (TypeInfo typeInfo in types)
+            {
+                Console.WriteLine(typeInfo.Name);
+                IWeatherProvider weatherProvider = (IWeatherProvider)ActivatorUtilities.CreateInstance(serviceProvider, typeInfo.AsType());
+                weatherProviders.addProvider(weatherProvider);
+            }
+            weatherProviders.freeze();
+            // this collection wil be Singleton
+            services.AddSingleton<IWeatherProviders>(weatherProviders);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app
+                             ,IHostingEnvironment env
+                             ,ILoggerFactory loggerFactory
+                             ,IServiceProvider serviceProvider
+                             )
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();

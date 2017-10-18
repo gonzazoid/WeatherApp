@@ -2,7 +2,7 @@ using System;
 
 namespace WeatherApp
 {
-	public class WeatherAppNotValidProviderResponseException : Exception
+	public class WeatherAppNotValidProviderResponseException : WeatherAppException
 	{
 	    public WeatherAppNotValidProviderResponseException(string message)
             : base(message)
