@@ -122,6 +122,7 @@ namespace WeatherApp
 
             app.UseMvc(routes =>
             {
+                routes.MapRoute("getProvidersList", "api/getProvidersList", new { controller = "Home", action = "getProvidersList" });
                 routes.MapRoute("getLocations", "api/getLocations", new { controller = "Home", action = "getLocations" });
                 routes.MapRoute("setLocation" , "api/setLocation" , new { controller = "Home", action = "setLocation" });
                 routes.MapRoute("getHistory"  , "api/getHistory"  , new { controller = "Home", action = "getHistory"   });

@@ -101,6 +101,7 @@ namespace WeatherApp.Models
     public class GetHistoryReq : PagedReq, IPlaceIdField
     {
         public int placeId { get; set; }
+        public string provider { get; set; }
     }
 
     public class GetHistoryReqValidator : PagedReqValidator<GetHistoryReq>

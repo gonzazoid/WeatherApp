@@ -1,5 +1,8 @@
 /// <reference path="./tsd.d.ts" />
 import { ajaxRowOptions, ajaxGridOptions } from './jqGridOptions';
+// TODO use some state lib
+var current_provider = '';
+
 {
 const table = $('#locations_list');
 
@@ -40,18 +43,17 @@ const pressureFormatter = function(cellValue: number, opts: any, rwd: any){
     url:'/api/getHistory',
     datatype: 'json',
     serializeGridData: function(postData: any) {
+        postData.provider = current_provider;
         postData.placeId = getParameterByName('placeId');
         return JSON.stringify(postData);
     },
     ajaxGridOptions,
     ajaxRowOptions,
-    colNames:['time', 'open weather pressure', 'open weather temp', 'yahoo pressure', 'yahoo temp'],
+    colNames:['time', 'pressure', 'temp'],
     colModel:[
         {name:'stamp',index:'stamp', width:120, formatter: dateFormatter}
-       ,{name:'openWeatherPressure', width:150, sortable: false, editable: false, formatter: pressureFormatter}
-       ,{name:'openWeatherTemp', width:130, sortable: false, editable: false, formatter: temperatureFormatter}
-       ,{name:'yahooPressure', width:120, sortable: false, editable: false, formatter: pressureFormatter}
-       ,{name:'yahooTemp', width:100, sortable: false, editable: false, formatter: temperatureFormatter}
+       ,{name:'pressure', width:150, sortable: false, editable: false, formatter: pressureFormatter}
+       ,{name:'temp', width:130, sortable: false, editable: false, formatter: temperatureFormatter}
     ],
     beforeProcessing: function(data: any){
         if(data.locationName){
@@ -69,4 +71,28 @@ const pressureFormatter = function(cellValue: number, opts: any, rwd: any){
 });
 
 table.jqGrid('inlineNav','#pager');
+
+// providers list
+const select = document.getElementById('providers_list') as HTMLSelectElement;
+fetch('/api/getProvidersList', {method: 'POST'})
+  .then(res => res.json())
+  .then((providers: {list: string[], def: string}) => {
+      if(select){
+          providers.list.forEach(provider => {
+              const option = document.createElement('option');
+              option.setAttribute('value', provider);
+              if(provider == providers.def){
+                  option.setAttribute('selected', 'selected');
+              }
+              option.innerHTML = provider;
+              select.appendChild(option);
+          });
+      }
+  });
+// повесим обработчик на выбор провайдера
+select.addEventListener('change', (evt) => {
+    const provider = select.options[select.selectedIndex].value;
+    current_provider = provider;
+    table.trigger('reloadGrid');
+});
 }

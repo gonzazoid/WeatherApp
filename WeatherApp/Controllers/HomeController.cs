@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using System.Collections.Generic;
 using WeatherApp.Models;
+using WeatherApp.Services;
 
 namespace MvcMovie.Controllers
 {
@@ -16,10 +17,12 @@ namespace MvcMovie.Controllers
     {
 
         WeatherAppContext dbContext;
+        IWeatherAppOptions config;
 
-        public HomeController(WeatherAppContext _context)
+        public HomeController(WeatherAppContext _context, IWeatherAppOptions _config)
         {
             dbContext = _context;
+            config = _config;
         }
 
         public JsonResult Err400()
@@ -144,25 +147,6 @@ namespace MvcMovie.Controllers
                 return Err400();
             }
 
-            // Overflow is checked in the fluentvalidate rules
-            int skip = (int)((req.page - 1) * req.rows);
-
-            // TODO ISSUE Entity Framework Core does not translate GroupBy into SQL yet, that is a future feature.
-            // https://github.com/aspnet/EntityFrameworkCore/issues/6245
-            var states = dbContext.weather_states.Where(x => x.PlaceId == req.placeId).GroupBy(x => x.stamp);
-            var ordered_query = req.sord == "asc" ? states.OrderBy(x => x.Key) : states.OrderByDescending(x => x.Key);
-            var query = await ordered_query
-                .Skip(skip)
-                .Take((int)req.rows) 
-                .ToListAsync();
-
-
-            var count = await dbContext.weather_states
-                .Where(x => x.PlaceId == req.placeId)
-                .GroupBy(x => x.stamp)
-                .CountAsync();
-
-
             var place = dbContext.places
                 .FirstOrDefault(x => x.PlaceId == req.placeId);
 
@@ -171,6 +155,28 @@ namespace MvcMovie.Controllers
                 return Err400();
             }
 
+            if(String.IsNullOrEmpty(req.provider))
+            {
+                req.provider = config.WeatherApp.defaultProvider;
+            }
+            // Overflow is checked in the fluentvalidate rules
+            int skip = (int)((req.page - 1) * req.rows);
+
+            // OUTDATED ISSUE Entity Framework Core does not translate GroupBy into SQL yet, that is a future feature.
+            // https://github.com/aspnet/EntityFrameworkCore/issues/6245
+            // using GroupBy removed
+            var states = dbContext.weather_states.Where(x => x.PlaceId == req.placeId && x.provider == req.provider);
+            var ordered_query = req.sord == "asc" ? states.OrderBy(x => x.stamp) : states.OrderByDescending(x => x.stamp);
+            // TODO task.WhenAll
+            var query = await ordered_query
+                .Skip(skip)
+                .Take((int)req.rows) 
+                .ToListAsync();
+
+            var count = await dbContext.weather_states
+                .Where(x => x.PlaceId == req.placeId && x.provider == req.provider)
+                .CountAsync();
+/*
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
 
             foreach (var group in query)
@@ -184,13 +190,29 @@ namespace MvcMovie.Controllers
                 }
                 rows.Add(row);
             }
-
+*/
             dynamic res = new System.Dynamic.ExpandoObject();
             res.total = (int)Math.Ceiling((double)count/req.rows);
             res.page = req.page;
             res.records = count;
-            res.rows = rows;
+            res.rows = query;
             res.locationName = place.Title;
+
+            return Json(res);
+
+        }
+
+        [HttpPost]
+        async public Task<JsonResult> getProvidersList()
+        {
+
+            var providersList = dbContext.weather_states
+                .Select(x => x.provider)
+                .Distinct();
+
+            dynamic res = new System.Dynamic.ExpandoObject();
+            res.list = providersList;
+            res.def = config.WeatherApp.defaultProvider;
 
             return Json(res);
 

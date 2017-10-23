@@ -19,5 +19,6 @@ namespace WeatherApp.Models {
         public string openWeatherRequestUrl { get; set; }
         public string openWeatherApiId { get; set; }
         public string yahooRequestUrl { get; set; }
+        public string defaultProvider { get; set; }
     }
 }
